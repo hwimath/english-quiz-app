@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentWordIndex = 0;
 
     // Load and parse the CSV file
-    fetch('words.csv')
+    fetch('/english-quiz-app/words.csv')
         .then(response => response.text())
         .then(data => {
             words = data.trim().split('\n').map(line => {

@@ -8,24 +8,51 @@ document.addEventListener('DOMContentLoaded', () => {
     let words = [];
     let currentWordIndex = 0;
 
-    // Hard-coded data for debugging
-    try {
-        words = [
-            { word: 'apple', meaning: '사과' },
-            { word: 'book', meaning: '책' },
-            { word: 'car', meaning: '자동차' },
-            { word: 'house', meaning: '집' }
-        ];
-        
-        if (words.length > 0) {
-            displayNextWord();
-        } else {
-            wordDisplay.textContent = 'No words found!';
-        }
-    } catch (error) {
-        console.error('Error processing words:', error);
-        wordDisplay.textContent = 'Error processing words.';
-    }
+    // Load and parse the CSV file
+    fetch('./words.csv')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return response.text();
+        })
+        .then(csvData => {
+            words = csvData.trim().split('\n').map(line => {
+                line = line.trim();
+                if (!line) return null;
+
+                const firstCommaIndex = line.indexOf(',');
+                if (firstCommaIndex === -1) return null;
+
+                const word = line.substring(0, firstCommaIndex).trim();
+                let meaning = line.substring(firstCommaIndex + 1).trim();
+
+                if (meaning.startsWith('"') && meaning.endsWith('"')) {
+                    meaning = meaning.substring(1, meaning.length - 1);
+                }
+
+                if (meaning.startsWith(',')) {
+                    meaning = meaning.substring(1);
+                }
+                
+                meaning = meaning.trim();
+
+                if (word && meaning) {
+                    return { word, meaning };
+                }
+                return null;
+            }).filter(Boolean);
+
+            if (words.length > 0) {
+                displayNextWord();
+            } else {
+                wordDisplay.textContent = 'No words found!';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading or parsing CSV file:', error);
+            wordDisplay.textContent = 'Error loading words.';
+        });
 
     function displayNextWord() {
         if (words.length > 0) {
